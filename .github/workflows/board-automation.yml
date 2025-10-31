@@ -55,13 +55,9 @@ jobs:
         run: |
           echo "Evento: ${{ github.event.action }}. Moviendo issue a '$STATUS_NAME'..."
 
-          echo "Buscando issue vinculado al PR #$PR_NUMBER..."
+          echo "Buscando issue vinculado (API) al PR #$PR_NUMBER..."
           ISSUE_NUMBER=$(gh pr view "$PR_NUMBER" --json closingIssuesReferences \
               -q ".closingIssuesReferences[0].number")
-          if [ -z "$ISSUE_NUMBER" ]; then
-              echo "No issue vinculated to PR"
-              exit 0
-          fi
 
           if [ -z "$ISSUE_NUMBER" ]; then
               echo "No se encontró issue vinculado por API. Buscando patrón en el cuerpo del PR..."
