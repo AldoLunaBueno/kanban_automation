@@ -62,6 +62,24 @@ jobs:
               echo "No issue vinculated to PR"
               exit 0
           fi
+
+          if [ -z "$ISSUE_NUMBER" ]; then
+              echo "No se encontró issue vinculado por API. Buscando patrón en el cuerpo del PR..."
+              # Obtenemos el cuerpo del PR del contexto del evento
+              PR_BODY=$(echo "${{ github.event.pull_request.body }}")
+              
+              # Buscamos patrones como "Closes #123", "Fixes #123", "Resolves #123"
+              # grep -oP: Solo muestra la parte que coincide (o) con una RegEx de Perl (P)
+              # \K: Descarta todo lo que vino antes (ej. "Closes #")
+              # \d+: Busca uno o más dígitos
+              # head -n 1: Toma solo el primer issue que encuentre
+              ISSUE_NUMBER=$(echo "$PR_BODY" | grep -oP '(Closes|Fixes|Resolves) #\K\d+' | head -n 1)
+          fi
+
+          if [ -z "$ISSUE_NUMBER" ]; then
+              echo "No se pudo encontrar ningún issue vinculado (ni por API ni en el cuerpo del PR)."
+              exit 0 # Salimos sin error para no fallar el workflow
+          fi
           
           echo "Buscando IDs del Proyecto, Campo, y Opción..."
           PROJECT_ID=$(gh project list --format json \
